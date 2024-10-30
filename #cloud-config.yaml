@@ -1,0 +1,28 @@
+#cloud-config
+users:
+  - default
+  - name: held
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDkRTmttsy49ExbzpL7sjJVfRCLzVwp+U9vox+pTx0IX6ONxS1gzwCI2kKIbPzItAi/xbsMIkHnUHVA6nLF5Fqy1fXJgqasOxZz7rcPVf0EUSh34n4ClV7I3ufWl2txR4OihnLYv0jeIMcyfeW+4AF+kwJvpTNJZXGLp7+jczuiinwiQTvC5FG9lCzTPAJWrK9XVNRDhPGG5O0SajZKzJzxkh75xb5PEhV/gopiaecjAc/zLT5h2JKmU3n97ds8vxjsLy+3X5fxDgoYT+L0GhPRWnMDKiVS/dh6aajd5vBKS5nn+gM1GGWcZ71R02vI30R5qr7xop6zrYwBNwdDbNw0IpCo48hiZzb2uJFVkKX6Y03A+N0yzQI0oBZHULX0SfE6Z4bLUlEUOoFyg2mU1HgtfhobaGCzh4oQAhjEUmfF6v+xrVIE/DAaxHMdm5urP95fAvS/cXObVQOZXHaMNLy+DkPrGolXxOQSI6YViwF2gR6WDQ5vFSuvx5MywB5FAG8= heldl@LorenzHeld
+
+# Upgrade system
+package_update: true
+#package_upgrade: true
+
+# Install needed packages
+packages:
+  - npm
+  - nginx
+
+#Make all commands which do not require sudo not to use sudo 
+runcmd:
+  - su - held -c "npm update"
+  - su - held -c "git clone https://gitlab.com/bbwrl/m346-ref-card-02.git"
+  - su - held -c "cd m346-ref-card-02"
+  - su - held -c "npm audit fix --force"
+  - su - held -c "nmp run build"
+
+  - rm /var/www/html/index.nginx-debian.html
+  - cp -r /home/held/m346-ref-card-02/build/* /var/www/html/

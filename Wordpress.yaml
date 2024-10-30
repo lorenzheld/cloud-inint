@@ -1,0 +1,45 @@
+#cloud-config
+
+# 1. Benutzerkonfiguration
+users:
+  - default
+  - name: held
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDkRTmttsy49ExbzpL7sjJVfRCLzVwp+U9vox+pTx0IX6ONxS1gzwCI2kKIbPzItAi/xbsMIkHnUHVA6nLF5Fqy1fXJgqasOxZz7rcPVf0EUSh34n4ClV7I3ufWl2txR4OihnLYv0jeIMcyfeW+4AF+kwJvpTNJZXGLp7+jczuiinwiQTvC5FG9lCzTPAJWrK9XVNRDhPGG5O0SajZKzJzxkh75xb5PEhV/gopiaecjAc/zLT5h2JKmU3n97ds8vxjsLy+3X5fxDgoYT+L0GhPRWnMDKiVS/dh6aajd5vBKS5nn+gM1GGWcZ71R02vI30R5qr7xop6zrYwBNwdDbNw0IpCo48hiZzb2uJFVkKX6Y03A+N0yzQI0oBZHULX0SfE6Z4bLUlEUOoFyg2mU1HgtfhobaGCzh4oQAhjEUmfF6v+xrVIE/DAaxHMdm5urP95fAvS/cXObVQOZXHaMNLy+DkPrGolXxOQSI6YViwF2gR6WDQ5vFSuvx5MywB5FAG8= heldl@LorenzHeld
+
+# 2. Systemaktualisierungen
+package_update: true
+package_upgrade: true
+
+# 3. Installation der erforderlichen Pakete
+packages:
+  - apache2
+  - php
+  - php-mysql
+  - wget
+  - unzip
+
+runcmd:
+  # Apache-Dienst aktivieren und starten
+  - systemctl enable apache2
+  - systemctl start apache2
+
+  # WordPress herunterladen und installieren
+  - wget https://wordpress.org/latest.tar.gz -P /tmp
+  - sudo tar -xzf /tmp/latest.tar.gz -C /var/www/html/
+  - mv /var/www/html/wordpress/* /var/www/html/
+  - rm -rf /var/www/html/wordpress
+  - sudo chown -R www-data:www-data /var/www/html
+  - sudo chmod -R 755 /var/www/html
+
+  # WordPress-Konfiguration mit RDS-Datenbankdetails anpassen
+  - sudo cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+  - sudo sed -i "s/database_name_here/Wordpress/g" /var/www/html/wp-config.php
+  - sudo sed -i "s/username_here/held/g" /var/www/html/wp-config.php
+  - sudo sed -i "s/password_here/root/g" /var/www/html/wp-config.php
+  - sudo sed -i "s/localhost/34.234.91.98/g" /var/www/html/wp-config.php
+
+  # Apache neu starten, um die Änderungen zu übernehmen
+  - systemctl restart apache2
