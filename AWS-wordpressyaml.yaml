@@ -21,15 +21,12 @@ packages:
 
 runcmd:
   - export MYSQL_HOST=<your-endpoint>
-  - mysql --user=<user> --password=<password> wordpress
-  - CREATE USER 'wordpress' IDENTIFIED BY 'wordpress-pass';
-  - GRANT ALL PRIVILEGES ON wordpress.* TO wordpress;
-  - FLUSH PRIVILEGES;
-  - Exit
+  - mysql -h -p -e "mysql --user=<user> --password=<password> wordpress; CREATE USER 'wordpress' IDENTIFIED BY 'wordpress-pass'; GRANT ALL PRIVILEGES ON wordpress.* TO wordpress; FLUSH PRIVILEGES; Exit;"
 
   - wget https://wordpress.org/latest.tar.gz
   - tar -xzf latest.tar.gz
   - cp wordpress/wp-config-sample.php wordpress/wp-config.php
+
   - sed -i 's/database_name_here/'"wordpress"'/g' wp-config.php
   - sed -i 's/username_here/'"wordpress"'/g' wp-config.php
   - sed -i 's/password_here/'"wordpress-pass"'/g' wp-config.php

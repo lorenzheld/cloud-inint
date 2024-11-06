@@ -9,9 +9,86 @@ users:
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDkRTmttsy49ExbzpL7sjJVfRCLzVwp+U9vox+pTx0IX6ONxS1gzwCI2kKIbPzItAi/xbsMIkHnUHVA6nLF5Fqy1fXJgqasOxZz7rcPVf0EUSh34n4ClV7I3ufWl2txR4OihnLYv0jeIMcyfeW+4AF+kwJvpTNJZXGLp7+jczuiinwiQTvC5FG9lCzTPAJWrK9XVNRDhPGG5O0SajZKzJzxkh75xb5PEhV/gopiaecjAc/zLT5h2JKmU3n97ds8vxjsLy+3X5fxDgoYT+L0GhPRWnMDKiVS/dh6aajd5vBKS5nn+gM1GGWcZ71R02vI30R5qr7xop6zrYwBNwdDbNw0IpCo48hiZzb2uJFVkKX6Y03A+N0yzQI0oBZHULX0SfE6Z4bLUlEUOoFyg2mU1HgtfhobaGCzh4oQAhjEUmfF6v+xrVIE/DAaxHMdm5urP95fAvS/cXObVQOZXHaMNLy+DkPrGolXxOQSI6YViwF2gR6WDQ5vFSuvx5MywB5FAG8= heldl@LorenzHeld
 
+package_update: true
+package_upgrade: true
+
+write_files:
+  - path: /tmp/prometheus/prometheus.yml
+    content: |
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s 
+      alerting:
+        alertmanagers:
+          - static_configs:
+            - targets:
+      rule_files:
+      scrape_configs:
+        - job_name: "prometheus"
+          static_configs:
+            - targets: ["0.0.0.0:9090"]
+        - job_name: "node"
+          static_configs:
+            - targets: ["0.0.0.0:9100"]
+      
+  - path: /etc/systemd/system/prometheus.service
+    content: |
+      [Unit]
+          Description=Prometheus
+          Wants=network-online.target
+          After=network-online.target
+      [Service]
+          User=prometheus
+          Group=prometheus
+          Type=simple
+          ExecStart=/usr/local/bin/prometheus \
+          --config.file /etc/prometheus/prometheus.yml \
+          --storage.tsdb.path /var/lib/prometheus/ \
+          --web.console.templates=/etc/prometheus/consoles \
+          --web.console.libraries=/etc/prometheus/console_libraries
+      [Install]
+          WantedBy=multi-user.target
+          
+  - path: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+          Description=Node Exporter
+          Wants=network-online.target
+          After=network-online.target
+      [Service]
+          ExecStart=/etc/node_exporter/node_exporter
+          Restart=always
+      [Install]
+          WantedBy=multi-user.target
+
 runcmd:
-  # Install Prometheus
-  - apt-get update
-  - apt-get install -y wget tar
-  - cd /tmp
-  - wget https://github.com/prometheus/prometheus/releases/download/v2.55.0/prometheus-2.55.0.linux-amd64.tar.gz
+  - wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+  - echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com/ stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+  - sudo ln -s /etc/apt/keyrings/grafana.gpg /etc/apt/trusted.gpg.d/grafana.gpg
+  - sudo apt-get update
+  - sudo apt-get install -y grafana 
+  - wget https://github.com/prometheus/prometheus/releases/download/v3.0.0-beta.1/prometheus-3.0.0-beta.1.linux-amd64.tar.gz
+  - sudo tar -xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
+  - sudo mkdir -p /etc/prometheus
+  - sudo mkdir -p /var/lib/prometheus
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/prometheus /usr/local/bin
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/promtool /usr/local/bin
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/consoles /etc/prometheus
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/console_libraries /etc/prometheus
+  - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+  - sudo tar -xzf node_exporter-1.7.0.linux-amd64.tar.gz
+  - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
+  - sudo mv /tmp/prometheus/prometheus.yml /etc/prometheus/prometheus.yml
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable grafana-server
+  - sudo systemctl start grafana-server
+  - sudo groupadd --system prometheus
+  - sudo useradd -s /sbin/nologin --system -g prometheus prometheus
+  - sudo chown prometheus:prometheus /usr/local/bin/prometheus
+  - sudo chown prometheus:prometheus /usr/local/bin/promtool
+  - sudo chown -R prometheus:prometheus /etc/prometheus
+  - sudo chown -R prometheus:prometheus /var/lib/prometheus
+  - sudo systemctl enable prometheus
+  - sudo systemctl start prometheus
+  - sudo systemctl enable node_exporter
+  - sudo systemctl start node_exporter
