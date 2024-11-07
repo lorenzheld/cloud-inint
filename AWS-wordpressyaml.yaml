@@ -9,7 +9,6 @@ users:
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDkRTmttsy49ExbzpL7sjJVfRCLzVwp+U9vox+pTx0IX6ONxS1gzwCI2kKIbPzItAi/xbsMIkHnUHVA6nLF5Fqy1fXJgqasOxZz7rcPVf0EUSh34n4ClV7I3ufWl2txR4OihnLYv0jeIMcyfeW+4AF+kwJvpTNJZXGLp7+jczuiinwiQTvC5FG9lCzTPAJWrK9XVNRDhPGG5O0SajZKzJzxkh75xb5PEhV/gopiaecjAc/zLT5h2JKmU3n97ds8vxjsLy+3X5fxDgoYT+L0GhPRWnMDKiVS/dh6aajd5vBKS5nn+gM1GGWcZ71R02vI30R5qr7xop6zrYwBNwdDbNw0IpCo48hiZzb2uJFVkKX6Y03A+N0yzQI0oBZHULX0SfE6Z4bLUlEUOoFyg2mU1HgtfhobaGCzh4oQAhjEUmfF6v+xrVIE/DAaxHMdm5urP95fAvS/cXObVQOZXHaMNLy+DkPrGolXxOQSI6YViwF2gR6WDQ5vFSuvx5MywB5FAG8= heldl@LorenzHeld
 
-
 package_update: true
 packages:
   - mysql-client
@@ -20,18 +19,16 @@ packages:
   - php-json
 
 runcmd:
-  - export MYSQL_HOST=<your-endpoint>
-  - mysql -h -p -e "mysql --user=<user> --password=<password> wordpress; CREATE USER 'wordpress' IDENTIFIED BY 'wordpress-pass'; GRANT ALL PRIVILEGES ON wordpress.* TO wordpress; FLUSH PRIVILEGES; Exit;"
+  - mysql -h wordpress.ckbnyjsuqry5.us-east-1.rds.amazonaws.com -u admin -p Lopik123! -e "CREATE USER 'wordpress' IDENTIFIED BY 'wordpress-pass'; GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'; FLUSH PRIVILEGES;"
 
   - wget https://wordpress.org/latest.tar.gz
   - tar -xzf latest.tar.gz
   - cp wordpress/wp-config-sample.php wordpress/wp-config.php
-
-  - sed -i 's/database_name_here/'"wordpress"'/g' wp-config.php
-  - sed -i 's/username_here/'"wordpress"'/g' wp-config.php
-  - sed -i 's/password_here/'"wordpress-pass"'/g' wp-config.php
-  - sed -i 's/localhost/wordpress.ckbnyjsuqry5.us-east-1.rds.amazonaws.com/g' wp-config.php
-
-  - rm /var/www/html/index.html
+  - sed -i 's/database_name_here/wordpress/g' wordpress/wp-config.php
+  - sed -i 's/username_here/wordpress/g' wordpress/wp-config.php
+  - sed -i 's/password_here/wordpress-pass/g' wordpress/wp-config.php
+  - sed -i 's/localhost/<dein-rds-endpoint>/g' wordpress/wp-config.php
+  - rm -f /var/www/html/index.html
   - cp -r wordpress/* /var/www/html/
+
  
