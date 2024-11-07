@@ -1,6 +1,5 @@
 #cloud-config
 
-# 1. Benutzerkonfiguration
 users:
   - default
   - name: held
@@ -27,8 +26,9 @@ runcmd:
   - sed -i 's/database_name_here/wordpress/g' wordpress/wp-config.php
   - sed -i 's/username_here/wordpress/g' wordpress/wp-config.php
   - sed -i 's/password_here/wordpress-pass/g' wordpress/wp-config.php
-  - sed -i 's/localhost/<dein-rds-endpoint>/g' wordpress/wp-config.php
+  - sed -i 's/localhost/wordpress.ckbnyjsuqry5.us-east-1.rds.amazonaws.com/g' wordpress/wp-config.php
   - rm -f /var/www/html/index.html
   - cp -r wordpress/* /var/www/html/
+  - apt install php-mysqli
 
  
