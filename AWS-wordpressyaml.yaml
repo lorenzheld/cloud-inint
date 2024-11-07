@@ -18,7 +18,8 @@ packages:
   - php-json
 
 runcmd:
-  - mysql -h wordpress.ckbnyjsuqry5.us-east-1.rds.amazonaws.com -u admin -pLopik123! -e "CREATE USER 'wordpress' IDENTIFIED BY 'wordpress-pass'; GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'; FLUSH PRIVILEGES;"
+  - mysql -h wordpress.ckbnyjsuqry5.us-east-1.rds.amazonaws.com -u admin -p12345678 -e "CREATE USER 'wordpress' IDENTIFIED BY 'wordpress-pass'; GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'; FLUSH PRIVILEGES;"
+
 
   - wget https://wordpress.org/latest.tar.gz
   - tar -xzf latest.tar.gz
@@ -32,7 +33,7 @@ runcmd:
   - apt install php-mysqli
 
 
-  # EBS Storage konfigurieren
+  # EBS Storage konfig
   - lsblk
   - file -s /dev/xvda
   - lsblk -f
