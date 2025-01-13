@@ -1,4 +1,5 @@
 #cloud-config
+
 users:
   - default
   - name: held
@@ -14,10 +15,13 @@ packages:
   - mysql-client
 
 runcmd:
+  #jdk11, maven und das gitlab clonen
   - apt-get install -y openjdk-11-jdk
   - wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz -O /tmp/apache-maven-3.9.9-bin.tar.gz 
   - tar xvf /tmp/apache-maven-3.9.9-bin.tar.gz -C /opt 
   - git clone https://gitlab.com/bbwrl/m346-ref-card-03.git 
+
+  
   - mysql -h database-1.cum4ky10xnky.us-east-1.rds.amazonaws.com -u admin -p12345678 -e "DROP DATABASE IF EXISTS jokedb; CREATE DATABASE jokedb; CREATE USER 'jokedbuser' IDENTIFIED BY '123456'; GRANT ALL PRIVILEGES ON jokedb.* TO 'jokedbuser'; FLUSH PRIVILEGES;" # Change DB-Servers endpoint
   - sed -i 's|http://localhost:3000|*|g' m346-ref-card-03/src/main/java/ch/bbw/architecturerefcard03/controller/JokeRestController.java 
   - echo "" > m346-ref-card-03/src/main/resources/application.properties 
